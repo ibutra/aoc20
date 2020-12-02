@@ -1,0 +1,1 @@
+/home/rakel/Documents/projects/aoc20/day1/target/debug/aoc20: /home/rakel/Documents/projects/aoc20/day1/src/common.rs /home/rakel/Documents/projects/aoc20/day1/src/day1.rs /home/rakel/Documents/projects/aoc20/day1/src/day2.rs /home/rakel/Documents/projects/aoc20/day1/src/main.rs
