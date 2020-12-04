@@ -2,14 +2,14 @@ use crate::common::read_file_lines;
 
 #[derive(Default, Debug)]
 struct Passport {
-    birth_year: Option<String>,
-    issue_year: Option<String>,
-    expriation_year: Option<String>,
-    height: Option<String>,
-    hair_color: Option<String>,
-    eye_color: Option<String>,
-    passport_id: Option<String>,
-    country_id: Option<String>,
+    birth_year:      Option<i32>,
+    issue_year:      Option<i32>,
+    expriation_year: Option<i32>,
+    height:          Option<String>,
+    hair_color:      Option<String>,
+    eye_color:       Option<String>,
+    passport_id:     Option<String>,
+    country_id:      Option<String>,
 }
 
 pub fn part1() {
@@ -22,13 +22,11 @@ impl Passport {
         let lines = read_file_lines(path);
         let mut valid_passports = Vec::new();
         let mut work_passport = Self::default();
-        for (line_num, line) in lines.iter().enumerate() {
+        for  line in lines.iter() {
             if line.len() == 0 {
                 if work_passport.valid() {
                     // println!("Valid passport: {:?}\n", work_passport);
                     valid_passports.push(work_passport);
-                } else {
-                    println!("Invalid passport before line {}: {:?}\n", line_num, work_passport);
                 }
                 work_passport = Self::default();
                 continue;
@@ -39,9 +37,9 @@ impl Passport {
                 let value = &field[4..];
                 // println!("{} | {}: {}", field, name, value);
                 match name {
-                    "byr" => work_passport.birth_year = Some(value.to_string()),
-                    "iyr" => work_passport.issue_year = Some(value.to_string()),
-                    "eyr" => work_passport.expriation_year = Some(value.to_string()),
+                    "byr" => work_passport.birth_year = value.parse::<i32>().ok(),
+                    "iyr" => work_passport.issue_year = value.parse::<i32>().ok(),
+                    "eyr" => work_passport.expriation_year = value.parse::<i32>().ok(),
                     "hgt" => work_passport.height = Some(value.to_string()),
                     "hcl" => work_passport.hair_color = Some(value.to_string()),
                     "ecl" => work_passport.eye_color = Some(value.to_string()),
@@ -51,29 +49,96 @@ impl Passport {
                 }
             }
         }
+        if work_passport.valid() {
+            // println!("Valid passport: {:?}\n", work_passport);
+            valid_passports.push(work_passport);
+        }
         valid_passports
     }
 
     fn valid(&self) -> bool {
-        if self.birth_year.is_none() {
+        if let Some(year) = self.birth_year {
+            if year < 1920 || year > 2002 {
+                return false;
+            }
+        } else {
             return false;
         }
-        if self.issue_year.is_none() {
+        if let Some(year) = self.issue_year {
+            if year < 2010 || year > 2020 {
+                return false;
+            }
+        } else {
             return false;
         }
-        if self.expriation_year.is_none() {
+        if let Some(year) = self.expriation_year {
+            if year < 2020 || year > 2030 {
+                return false;
+            }
+        } else {
             return false;
         }
-        if self.height.is_none() {
+        if let Some(height) = &self.height {
+            let len = height.len();
+            let unit = &height[len-2..];
+            let value = &height[..len-2];
+            if unit != "in" && unit != "cm" {
+                return false;
+            }
+            if let Ok(value) = value.parse::<i32>() {
+                if unit == "in" {
+                    if value < 59 || value > 76 {
+                        println!("in out of bounds {}", value);
+                        return false;
+                    }
+                } else if unit == "cm" {
+                    if value < 150 || value > 193 {
+                        println!("cm out of bounds {}", value);
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
             return false;
         }
-        if self.hair_color.is_none() {
+        if let Some(color) = &self.hair_color {
+            if color.chars().nth(0).unwrap() != '#' {
+                return false;
+            }
+            for c in color[1..].bytes() {
+                if (c < 48 && c > 57) || (c < 97 && c > 122) {
+                    return false;
+                }
+            }
+        } else {
             return false;
         }
-        if self.eye_color.is_none() {
+        if let Some(color) = &self.eye_color {
+            let mut valid = false;
+            for c in vec!["amb", "blu", "brn", "gry", "grn", "hzl", "oth"] {
+                if color == c {
+                    valid = true;
+                    break;
+                }
+            }
+            if !valid {
+                return false;
+            }
+        } else {
             return false;
         }
-        if self.passport_id.is_none() {
+        if let Some(id) = &self.passport_id {
+            if id.len() != 9 {
+                return false;
+            }
+            if id.parse::<i32>().is_err() {
+                return false;
+            }
+        } else {
             return false;
         }
         true
